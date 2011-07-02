@@ -1,0 +1,75 @@
+----- OpenSSL download -----
+
+pushd openssl
+
+wget http://www.openssl.org/source/openssl-1.0.0d.tar.gz
+
+tar xvf openssl-1.0.0d.tar.gz
+
+pushd openssl-1.0.0d
+
+./config
+
+make
+
+popd
+popd
+
+----- Compiling Bitcoin Secure ------
+
+make
+
+----- Security Model -----
+
+This program implements the deterministic wallet as described by gmaxwell and I am assuming that his system doesn't have a cryptographic weakness.
+
+https://forum.bitcoin.org/index.php?topic=19137
+
+Bugs by me, or a weakness in the underlying system could compromise the wallet's security.
+
+The wallet contains 3 non-changing values.  These values can be used to generate public and private keys for the bitcoin system.
+
+However, spending coins is the only operation which requires the master private key.  It is possible to generate new receive addresses by only using the public master key.
+
+                        Receiving  Finding   Spending
+                          Coins     Coins     Coins  
+
+Private Master Key                              X
+
+Secret Random Seed         X          X         X
+
+Public Master Key          X          X
+
+----- Private Key Generation -----
+
+The key can be generated based on a pass phrase.  This allows the key to be recovered if the key file is lost.
+
+Generate key using passphrase
+
+./run/bitcsec -phrase "This is a secure passphrase since it contains a number 15243 and some symbols \___/ !!!" -genprivkey -o keyname
+
+Generate key with no recovery passphrase
+
+./run/bitcsec -genprivkey -o keyname
+
+
+----- Public Operations -----
+
+This operations do not require the private key, so can be performed on a non-secure computer.
+
+The secret seed is required, but if that is compromised, an still cannot spend any coins.
+
+----- Transaction Creation ------
+
+The public key can be used to create transactions.
+
+./run/bitcsec -pubkey <keyname> -sendaddr <send-address> -coinhash <coin-hash> -amount <amount> -address <destination address>
+
+Warning: This will spend the entire coin.  Any unspent value associated with the coin would be designated as transaction fees.
+
+----- Generating addresses -----
+
+You can generate addresses using only the public key
+
+./run/bitcsec -pubkey <keyname>
+
